@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import os
+from sys import *
+import fileinput
+import subprocess
+from time import sleep
+
+while (os.path.exists('running')):
+        sleep(1)
+os.system("touch running")
+
+def exec(command):
+    ret = os.system(command)
+    if (ret != 0):
+        os.system("echo unknow error on " + mouli_id + " >> trace.error")
+        os.system("rm running")
+        exit (94)
+
+nb_runnermax = 5
+my_token = argv[1]
+my_repo = argv[2]
+my_orga = argv[3]
+project_name = argv[4]
+mouli_id = argv[5]
+
+file = open("moulitoken", "r")
+token_file = file.read()
+file.close
+token = token_file[:-1]
+
+def pars():
+    ret = os.system("git clone https://" + my_orga + ":" + my_token + "@github.com/" + my_orga + "/" + my_repo + " supr.val")
+    ret2 = os.system("git clone https://moulitek:" + token + "@github.com/moulitek/" + project_name + "_online.git supr2.val")
+    if (ret != 0 or ret2 != 0):
+        os.system("rm -rf running")
+        os.system("rm -rf supr.val")
+        os.system("rm -rf supr2.val")
+        os.system("echo " + mouli_id + " >> trace.error")
+        exit (84)
+    os.system("rm -rf supr2.val")
+    os.system("rm -rf supr.val")
+
+#repo
+def set_runner():
+    indice = 1
+    while (indice <= nb_runnermax):
+        runnername = "runner" + str(indice)
+        os.system("./runner.sh " + token + " moulitek/" + runnername + " > runnerstat.val")
+        file = open("runnerstat.val", "r")
+        res = file.read()
+        file.close
+        os.system("rm runnerstat.val")
+        if (res == "completed\n" or res == "null\n"):
+            print (runnername + " is free")
+            return (runnername)
+        indice += 1;
+    print ("no runner found");
+    os.system("echo no_runner_found >> trace.error")
+    os.system("rm running");
+    exit (69)
+
+#normaluse
+def sending(runner):
+    #fill the push
+    exec("git clone https://moulitek:" + token + "@github.com/moulitek/" + project_name + "_online.git " + mouli_id)
+    exec("mv " + mouli_id + "/mouliVD " + mouli_id + "/.github " + runner)
+    os.chdir(runner)
+    exec("cp ../abricot/brico.py .")
+    exec("echo " + my_token + " > token")
+    exec("echo " + my_repo + " > repo")
+    exec("echo " + my_orga + " > orga")
+    exec("echo " + mouli_id + " > id")
+    #push
+    exec("git add .")
+    exec("git commit -m push")
+    exec("git push")
+    #reset all
+    os.chdir("..")
+    exec("mv " + runner + "/.git .")
+    exec("rm -rf " + runner + "/* " + runner + "/.*")
+    exec("mv .git " + runner)
+    exec("rm running");
+    #push reset
+    os.chdir(runner)
+    exec("git add .")
+    exec("git commit -m reset")
+    exec("git push")
+    #clean mess
+    os.chdir("..")
+    exec("rm -rf " + mouli_id)
+
+pars();
+runner = set_runner();
+sending(runner);
