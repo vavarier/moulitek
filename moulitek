@@ -14,6 +14,7 @@ def exec(command):
     if (ret != 0):
         os.system("echo unknow error on " + mouli_id + " >> trace.error")
         os.system("rm running")
+        os.system("rm -rf " + runner + "/* " + runner + "/.*")
         exit (94)
 
 nb_runnermax = 5
@@ -77,7 +78,7 @@ def sending(runner):
     #reset all
     os.chdir("..")
     exec("mv " + runner + "/.git .")
-    exec("rm -rf " + runner + "/* " + runner + "/.*")
+    os.system("rm -rf " + runner + "/* " + runner + "/.*")
     exec("mv .git " + runner)
     exec("rm running");
     #push reset
